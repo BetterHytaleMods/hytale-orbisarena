@@ -1,0 +1,12 @@
+{
+  "$Comment": "Keeps a player standing on their keep during a match; the plugin puts it on again every quarter second.",
+  "ApplicationEffects": {
+    "MovementEffects": {
+      "DisableAll": true
+    },
+    "KnockbackMultiplier": 0
+  },
+  "Duration": 1,
+  "OverlapBehavior": "Overwrite",
+  "Debuff": false
+}

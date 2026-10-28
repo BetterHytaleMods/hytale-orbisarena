@@ -1,0 +1,7 @@
+commands.arena.desc = Join Orbis Arena
+commands.arena.leave.desc = Leave Orbis Arena
+commands.arena.solo.desc = Start a match against the bot right away
+commands.arena.status.desc = Show lobbies and matches
+commands.arena.cam.desc = Tune the arena camera
+commands.arena.botmatch.desc = Let two bots play a match in an arena of their own
+commands.arena.start.desc = End the lobby countdown in three seconds

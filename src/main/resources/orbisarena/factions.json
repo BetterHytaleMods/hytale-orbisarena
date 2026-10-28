@@ -2,63 +2,75 @@
   "units": {
     "kweebec_sapling": {
       "name": "Sapling", "models": ["Kweebec_Sapling", "Kweebec_Sapling_Pink", "Kweebec_Sapling_Orange", "Kweebec_Sapling_Yellow", "Kweebec_Sapling_Green"],
+      "role": "Kweebec_Sapling", "attack": "Kweebec_Spear/Stab",
       "hp": 95, "speed": 1.4, "radius": 0.35, "mass": 1,
       "weapon": {"damage": 45, "hitSpeed": 1.0, "firstHit": 0.4, "range": 0.5, "targets": "GROUND"}
     },
     "kweebec_razorleaf": {
       "name": "Razorleaf Scout", "models": ["Kweebec_Sapling_Razorleaf"],
+      "role": "Kweebec_Razorleaf", "attack": "Kweebec_Spear/SwingRight",
       "hp": 280, "speed": 1.0, "radius": 0.4, "mass": 2,
       "weapon": {"damage": 85, "hitSpeed": 1.1, "firstHit": 0.5, "range": 5.0, "targets": "ALL", "projectile": "leaf", "projectileSpeed": 12}
     },
     "kweebec_treesinger": {
       "name": "Treesinger", "models": ["Kweebec_Sapling_Treesinger"],
+      "role": "Kweebec_Sapling",
       "hp": 520, "speed": 1.0, "radius": 0.4, "mass": 3,
       "weapon": {"damage": 60, "hitSpeed": 1.3, "firstHit": 0.6, "range": 4.5, "targets": "ALL", "projectile": "seed", "projectileSpeed": 10},
       "heal": {"radius": 2.5, "amount": 45, "every": 1.0}
     },
     "kweebec_rootling": {
       "name": "Rootling Guard", "models": ["Kweebec_Rootling"],
+      "role": "Kweebec_Rootling",
       "hp": 950, "speed": 1.0, "radius": 0.45, "mass": 5,
       "weapon": {"damage": 115, "hitSpeed": 1.2, "firstHit": 0.5, "range": 0.6, "targets": "GROUND"}
     },
     "spirit_root": {
       "name": "Root Spirit", "models": ["Spirit_Root"],
+      "role": "Spirit_Root", "attack": "Spirit_Root_Default/SporeGas",
       "hp": 2300, "speed": 0.75, "radius": 0.7, "mass": 18,
       "weapon": {"damage": 145, "hitSpeed": 1.5, "firstHit": 0.6, "range": 0.8, "targets": "BUILDINGS"}
     },
     "owl_sentinel": {
       "name": "Owl Sentinel", "models": ["Owl_Brown"], "scale": 1.4,
+      "role": "Owl_Brown",
       "hp": 260, "speed": 1.4, "radius": 0.4, "mass": 2, "air": true,
       "weapon": {"damage": 80, "hitSpeed": 1.0, "firstHit": 0.4, "range": 2.5, "targets": "ALL", "projectile": "feather", "projectileSpeed": 14}
     },
 
     "trork_warrior": {
       "name": "Trork Warrior", "models": ["Trork_Warrior"],
+      "role": "Trork_Warrior", "attack": "Trork_Battleaxe/SwingDown",
       "hp": 620, "speed": 1.0, "radius": 0.45, "mass": 5,
       "weapon": {"damage": 115, "hitSpeed": 1.3, "firstHit": 0.5, "range": 0.6, "targets": "GROUND"}
     },
     "trork_hunter": {
       "name": "Spear Hunter", "models": ["Trork_Hunter"],
+      "role": "Trork_Hunter", "attack": "Trork_Axe/ThrowDouble",
       "hp": 300, "speed": 1.0, "radius": 0.45, "mass": 3,
       "weapon": {"damage": 95, "hitSpeed": 1.3, "firstHit": 0.5, "range": 5.0, "targets": "ALL", "projectile": "spear", "projectileSpeed": 11}
     },
     "trork_mauler": {
       "name": "Mauler", "models": ["Trork_Mauler"],
+      "role": "Trork_Mauler", "attack": "Trork_Mace/SwingDown",
       "hp": 1300, "speed": 1.0, "radius": 0.55, "mass": 9,
       "weapon": {"damage": 210, "hitSpeed": 1.6, "firstHit": 0.6, "range": 0.7, "targets": "GROUND", "splash": 1.0}
     },
     "trork_chieftain": {
       "name": "Chieftain", "models": ["Trork_Chieftain"], "scale": 0.9,
+      "role": "Trork_Chieftain", "attack": "Trork_Battleaxe/SwingDown",
       "hp": 2600, "speed": 0.75, "radius": 0.7, "mass": 20,
       "weapon": {"damage": 300, "hitSpeed": 1.8, "firstHit": 0.7, "range": 0.9, "targets": "GROUND", "splash": 1.5}
     },
     "trork_shaman": {
       "name": "Shaman", "models": ["Trork_Shaman"],
+      "role": "Trork_Shaman",
       "hp": 480, "speed": 1.0, "radius": 0.45, "mass": 3,
       "weapon": {"damage": 110, "hitSpeed": 1.6, "firstHit": 0.6, "range": 5.0, "targets": "ALL", "splash": 1.2, "projectile": "hex", "projectileSpeed": 9}
     },
     "boar_charger": {
       "name": "Boar Charger", "models": ["Boar"], "scale": 1.15,
+      "role": "Boar", "attack": "Boar_Default/Ram",
       "hp": 1000, "speed": 1.8, "radius": 0.55, "mass": 8,
       "weapon": {"damage": 180, "hitSpeed": 1.5, "firstHit": 0.4, "range": 0.6, "targets": "BUILDINGS"},
       "charge": {"after": 2.5, "damageMul": 2.0, "speedMul": 1.3}
@@ -66,53 +78,63 @@
 
     "skeleton": {
       "name": "Skeleton", "models": ["Skeleton_Fighter"],
+      "role": "Skeleton_Fighter", "attack": "Skeleton_Club/SwingDown",
       "hp": 75, "speed": 1.4, "radius": 0.35, "mass": 1,
       "weapon": {"damage": 65, "hitSpeed": 1.0, "firstHit": 0.4, "range": 0.5, "targets": "GROUND"}
     },
     "skeleton_archer": {
       "name": "Bone Archer", "models": ["Skeleton_Archer"],
+      "role": "Skeleton_Archer", "attack": "Skeleton_Bow/Shoot",
       "hp": 250, "speed": 1.0, "radius": 0.4, "mass": 2,
       "weapon": {"damage": 80, "hitSpeed": 1.0, "firstHit": 0.5, "range": 5.5, "targets": "ALL", "projectile": "arrow", "projectileSpeed": 14}
     },
     "skeleton_archmage": {
       "name": "Archmage", "models": ["Skeleton_Archmage"],
+      "role": "Skeleton_Archmage", "attack": "Skeleton_Staff/CastSummon",
       "hp": 600, "speed": 1.0, "radius": 0.45, "mass": 3,
       "weapon": {"damage": 170, "hitSpeed": 1.7, "firstHit": 0.7, "range": 5.0, "targets": "ALL", "splash": 1.5, "projectile": "orb", "projectileSpeed": 8}
     },
     "shadow_knight": {
       "name": "Shadow Knight", "models": ["Shadow_Knight"],
+      "role": "Shadow_Knight",
       "hp": 1700, "speed": 1.0, "radius": 0.55, "mass": 10,
       "weapon": {"damage": 230, "hitSpeed": 1.5, "firstHit": 0.6, "range": 0.8, "targets": "GROUND"}
     },
     "wraith": {
       "name": "Wraith", "models": ["Wraith"],
+      "role": "Wraith", "attack": "Skeleton_Spear/SpinSwingRight",
       "hp": 600, "speed": 1.0, "radius": 0.5, "mass": 4, "air": true,
       "weapon": {"damage": 130, "hitSpeed": 1.3, "firstHit": 0.5, "range": 2.0, "targets": "ALL", "projectile": "wisp", "projectileSpeed": 10}
     },
 
     "goblin_scrapper": {
       "name": "Scrapper", "models": ["Goblin_Scrapper"],
+      "role": "Goblin_Scrapper", "attack": "Goblin_Club/SwingDown",
       "hp": 170, "speed": 1.4, "radius": 0.35, "mass": 1,
       "weapon": {"damage": 80, "hitSpeed": 1.0, "firstHit": 0.4, "range": 0.5, "targets": "GROUND"}
     },
     "goblin_lobber": {
       "name": "Lobber", "models": ["Goblin_Lobber"],
+      "role": "Goblin_Lobber", "attack": "Goblin_Bomb/Throw",
       "hp": 340, "speed": 1.0, "radius": 0.4, "mass": 2,
       "weapon": {"damage": 165, "hitSpeed": 1.8, "firstHit": 0.7, "range": 6.0, "targets": "GROUND", "splash": 1.5, "projectile": "bomb", "projectileSpeed": 7, "lob": true}
     },
     "goblin_burner": {
       "name": "Burner", "models": ["Goblin_Burner"],
+      "role": "Goblin_Burner",
       "hp": 750, "speed": 1.0, "radius": 0.45, "mass": 5,
       "weapon": {"damage": 55, "hitSpeed": 0.45, "firstHit": 0.3, "range": 2.5, "targets": "ALL", "splash": 1.0, "projectile": "flame", "projectileSpeed": 16}
     },
     "goblin_miner": {
       "name": "Miner", "models": ["Goblin_Miner"],
+      "role": "Goblin_Miner", "attack": "Goblin_Pickaxe/SwingDownLeft",
       "hp": 950, "speed": 1.0, "radius": 0.45, "mass": 6,
       "weapon": {"damage": 140, "hitSpeed": 1.2, "firstHit": 0.4, "range": 0.6, "targets": "BUILDINGS"},
       "burrow": {"speed": 2.2}
     },
     "goblin_glutton": {
       "name": "Glutton", "models": ["Goblin_Glutton"],
+      "role": "Goblin_Glutton",
       "hp": 2400, "speed": 0.75, "radius": 0.7, "mass": 18,
       "weapon": {"damage": 150, "hitSpeed": 1.5, "firstHit": 0.6, "range": 0.8, "targets": "BUILDINGS"}
     }

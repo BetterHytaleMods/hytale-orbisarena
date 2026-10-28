@@ -49,7 +49,8 @@ public final class Catalog {
         Map<String, UnitDef> units = new LinkedHashMap<>();
         file.units.forEach((id, unit) -> units.put(id, new UnitDef(id, unit.name(), unit.models(), unit.scale() > 0 ? unit.scale() : 1,
                 unit.hp(), unit.speed(), unit.radius(), unit.mass() > 0 ? unit.mass() : 1, unit.air(),
-                unit.sight() > 0 ? unit.sight() : 5.5, unit.weapon(), unit.heal(), unit.charge(), unit.burrow())));
+                unit.sight() > 0 ? unit.sight() : 5.5, unit.weapon(), unit.heal(), unit.charge(), unit.burrow(),
+                unit.role(), unit.attack())));
         Map<String, StructureDef> structures = new LinkedHashMap<>();
         file.structures.forEach((id, s) -> structures.put(id, new StructureDef(id, s.kind(), s.w(), s.h(), s.hp(), s.lifetime(),
                 s.weapon(), s.spawn(), s.hedge(), s.keg(), s.style(), s.puppet())));
@@ -189,7 +190,7 @@ public final class Catalog {
 
     private record RawUnit(String name, List<String> models, double scale, double hp, double speed, double radius,
                            double mass, boolean air, double sight, Weapon weapon, UnitDef.Heal heal,
-                           UnitDef.Charge charge, UnitDef.Burrow burrow) {
+                           UnitDef.Charge charge, UnitDef.Burrow burrow, String role, String attack) {
     }
 
     private record RawStructure(StructureDef.Kind kind, int w, int h, double hp, double lifetime, Weapon weapon,

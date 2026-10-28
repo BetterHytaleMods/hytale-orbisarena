@@ -1,0 +1,18 @@
+{
+  "$Comment": "Lobby and arenas of Orbis Arena: nobody breaks or places blocks, nobody takes damage, nothing is lost, no world events.",
+  "Parent": "Default",
+  "World": {
+    "AllowBlockBreaking": false,
+    "AllowBlockPlacement": false,
+    "AllowBlockGathering": false
+  },
+  "Combat": {
+    "DisablePlayerIncomingDamage": true
+  },
+  "Death": {
+    "ItemsLossMode": "None"
+  },
+  "Plugin": {
+    "WorldEvents": {}
+  }
+}

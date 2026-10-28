@@ -1,0 +1,44 @@
+{
+  "RequiredPlugins": {},
+  "ChunkStorage": {
+    "Type": "Hytale"
+  },
+  "GameMode": "Adventure",
+  "IsPvpEnabled": false,
+  "IsFallDamageEnabled": false,
+  "IsSpawningNPC": false,
+  "IsSpawnMarkersEnabled": false,
+  "IsAllNPCFrozen": false,
+  "GameTime": "0001-01-01T12:00:00Z",
+  "IsGameTimePaused": true,
+  "GameplayConfig": "OrbisArena",
+  "IsCompassUpdating": false,
+  "IsObjectiveMarkersEnabled": false,
+  "IsTicking": true,
+  "IsSavingPlayers": true,
+  "Seed": 1028,
+  "WorldGen": {
+    "Type": "Void",
+    "Environment": "Default"
+  },
+  "SpawnProvider": {
+    "Id": "Global",
+    "SpawnPoint": {
+      "X": 0.5,
+      "Y": 66.0,
+      "Z": 0.5,
+      "Pitch": 0,
+      "Yaw": 0,
+      "Roll": 0.0
+    }
+  },
+  "Instance": {
+    "RemovalConditions": [
+      {
+        "Type": "WorldEmpty"
+      }
+    ]
+  },
+  "DeleteOnRemove": true,
+  "Version": 2
+}

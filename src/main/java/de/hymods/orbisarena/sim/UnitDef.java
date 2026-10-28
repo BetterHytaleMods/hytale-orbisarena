@@ -10,9 +10,12 @@ import java.util.List;
  * @param radius collision radius in tiles
  * @param mass   how hard it pushes others; tanks are heavy
  * @param sight  how far it notices enemies, in tiles
+ * @param role   the game's NPC role its puppet is made from (it brings the weapon in hand), null for none
+ * @param attack the game's item animations and animation an attack plays, as {@code Set/Animation}, null for none
  */
 public record UnitDef(String id, String name, List<String> models, double scale, double hp, double speed, double radius,
-                      double mass, boolean air, double sight, Weapon weapon, Heal heal, Charge charge, Burrow burrow) {
+                      double mass, boolean air, double sight, Weapon weapon, Heal heal, Charge charge, Burrow burrow,
+                      String role, String attack) {
 
     public String model(int index) {
         return this.models.get(index % this.models.size());

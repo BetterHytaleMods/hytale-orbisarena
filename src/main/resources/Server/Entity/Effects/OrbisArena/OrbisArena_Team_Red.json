@@ -1,0 +1,10 @@
+{
+  "$Comment": "Units of the side that starts in the north: a red sheen.",
+  "ApplicationEffects": {
+    "EntityTopTint": "#ffb09c",
+    "EntityBottomTint": "#ff3a2a"
+  },
+  "Infinite": true,
+  "OverlapBehavior": "Overwrite",
+  "Debuff": false
+}
