@@ -50,6 +50,6 @@ und 5531 gehören anderen Mods/Agenten. Operator-Befehle: `/arena status`, `/are
 
 ## Stand
 
-- 28.10.: Simulation mit Tests, Spielschicht, Kartenbilder. Serverseitig geprüft: Bot gegen Bot läuft in einer echten
+- 28.10.: Simulation mit Tests, Spielschicht, Kartenbilder; Repo öffentlich auf GitHub (`BetterHytaleMods/hytale-orbisarena`), CI baut und testet jeden Push. Serverseitig geprüft: Bot gegen Bot läuft in einer echten
   Arena-Welt zu Ende, Figuren, Wachen, Geschosse entstehen, Welt wird danach entfernt. **Im Client noch ungetestet**:
   Kamera, HUD, Fraktionsseite, Klicks/Tasten, Bewegung und Animation der Puppen, Wasser, Teamfarben.
