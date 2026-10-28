@@ -1,0 +1,20 @@
+{
+  "Group": "de.hymods",
+  "Name": "OrbisArena",
+  "Version": "${project.version}",
+  "Description": "A lane battler minigame: pick a faction, play cards from above, bring down the enemy keep.",
+  "Authors": [
+    {
+      "Name": "Hymods",
+      "Email": "contact@hymods.de",
+      "Url": "https://hymods.de"
+    }
+  ],
+  "Website": "https://hymods.de",
+  "ServerVersion": ">=0.7.4 <0.8.0",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true,
+  "Main": "de.hymods.orbisarena.OrbisArenaPlugin"
+}
