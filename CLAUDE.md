@@ -25,6 +25,11 @@ mit Fraktionswahl → Countdown → 1v1 (oder gegen den Bot) in einer eigenen Ar
   Rechtsklick), **Zonen-Arenen** (Emerald Grove, Howling Sands, Borea, Devastated Lands; je Match zufällig).
 - Tempo: Lobby 30 s (10 s ab zwei Spielern), 3 Min, letzte Minute doppelte Essenz, 1 Min Sudden Death, dann
   entscheidet der schwächste Turm.
+- **29.10.: Kamera frei.** Spieler fliegen frei über der Arena (Spielmodus `OrbisArena_Flight`, bis 40 Blöcke hoch,
+  nicht durch Türme und Mauern), zielen mit dem Fadenkreuz (Markierung am Boden: grün passt, rot nicht). Auf jeder
+  Burg steht der **Anführer der Fraktion** und schießt. Die Draufsicht bleibt als Option, **näher dran** (Taste 5
+  schaltet um, Kamera folgt dem Spieler von oben, Mauszeiger). **`/zoom <Stärke>`**, R halten zoomt, wie in
+  FlexiisGoggles.
 
 ## Aufbau
 
@@ -35,8 +40,10 @@ mit Fraktionswahl → Countdown → 1v1 (oder gegen den Bot) in einer eigenen Ar
 | `sim/Bot` | Verteidigt, was über den Fluss kommt, spart und drückt eine Spur, nutzt die Fähigkeit |
 | `src/main/resources/orbisarena/factions.json` | Alle Einheiten, Bauwerke, Fraktionen, Karten, Fähigkeiten (Werte = Vorschläge); `role`/`attack` sind Rolle und Angriffsanimation der Puppe |
 | `game/Games` | Lobby (Welt `orbis_arena_lobby`), Countdown, Paarung, Hin- und Rückweg; `game/Session` ein Match in eigener Welt `orbis_arena_<n>_<x>` (Vorlage `Server/Instances/OrbisArena/Arena`, Void, Abenteuer, Regeln `OrbisArena`) |
-| `game/Camera` | Feste Kamera hinter und über der eigenen Burg, Mauszeiger; `/arena cam <höhe> <neigung> <reihe>` |
-| `game/SlotSystem` | Tasten 1–4 (aktiver Hotbar-Platz) wählen die Karte; Linksklick auf einen Block spielt sie, Rechtsklick die Fähigkeit |
+| `game/Camera` | Die Draufsicht (Taste 5): Kamera folgt dem fliegenden Spieler von hinten oben, Mauszeiger; `/arena cam <abstand> <neigung>` |
+| `game/Zoom` + `command/ZoomCommand` | R halten zoomt (Root-Interaktionen `Root_OrbisArena_Zoom_<n>x` auf `Ability3`, wie FlexiisGoggles), `/zoom <n>` je Spieler in `zoom.json` |
+| `game/SlotSystem` | Tasten 1–4 (aktiver Hotbar-Platz) wählen die Karte, 5 wechselt die Ansicht; Linksklick spielt die Karte, Rechtsklick die Fähigkeit, gezielt im Flug per Blickrichtung bis zum Boden (`Session.aim`), von oben per Block unter dem Mauszeiger |
+| `Server/Entity/GameMode/OrbisArena_Flight.json` | Fliegen (Bewegung `Spectator`), unverwundbar, ungreifbar, kein Inventar, Fadenkreuz; Rettung nach Abbruch: `Games.rescue` bringt Gestrandete zum Ursprung (gespeichert im `Stash`) |
 | `stash/*` | Eigenes Inventar beim Betreten einer Orbis-Welt weg, beim Verlassen zurück (gespeichert mit dem Spieler) |
 | `view/*` | NPCs des Spiels als Puppen (`Frozen`, unverwundbar, nicht gespeichert, Teamfarbe per Effekt), Wachen mit Turm-Leben, Geschosse, Partikel |
 | `world/*` | Platz der Arena in der Welt (`Place`), Zonen, Blöcke und Wasser, Arena- und Bauwerk-Blöcke (`ArenaBuilder`) |

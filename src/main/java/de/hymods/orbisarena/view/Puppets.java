@@ -86,7 +86,6 @@ final class Puppets {
         if (side >= 0) {
             this.effect(ref, TEAM[side]);
         }
-        this.animate(ref, AnimationSlot.Movement, null, "Idle");
         return ref;
     }
 

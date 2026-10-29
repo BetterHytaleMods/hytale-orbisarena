@@ -18,7 +18,8 @@ import javax.annotation.Nonnull;
 
 /**
  * {@code /arena} joins the lobby (in the lobby: pick a faction again), {@code /arena leave} goes home. For
- * operators: {@code status}, {@code start} (the countdown ends in three seconds), {@code cam <height> <pitch> <row>}.
+ * operators: {@code status}, {@code start} (the countdown ends in three seconds), {@code cam <distance> <pitch>}
+ * (the view from above), {@code botmatch}.
  */
 public final class ArenaCommand extends AbstractPlayerCommand {
     private final Games games;
@@ -102,9 +103,8 @@ public final class ArenaCommand extends AbstractPlayerCommand {
 
     private static final class Cam extends CommandBase {
         private final Games games;
-        private final RequiredArg<Double> height = this.withRequiredArg("height", "orbisarena.commands.arena.cam.desc", ArgTypes.DOUBLE);
+        private final RequiredArg<Double> distance = this.withRequiredArg("distance", "orbisarena.commands.arena.cam.desc", ArgTypes.DOUBLE);
         private final RequiredArg<Double> pitch = this.withRequiredArg("pitch", "orbisarena.commands.arena.cam.desc", ArgTypes.DOUBLE);
-        private final RequiredArg<Double> row = this.withRequiredArg("row", "orbisarena.commands.arena.cam.desc", ArgTypes.DOUBLE);
 
         Cam(Games games) {
             super("cam", "orbisarena.commands.arena.cam.desc");
@@ -113,7 +113,7 @@ public final class ArenaCommand extends AbstractPlayerCommand {
 
         @Override
         protected void executeSync(@Nonnull CommandContext context) {
-            Camera camera = new Camera(this.height.get(context), this.pitch.get(context), this.row.get(context));
+            Camera camera = new Camera(this.distance.get(context), this.pitch.get(context));
             this.games.camera(camera);
             context.sendMessage(Message.raw("camera: " + camera));
         }

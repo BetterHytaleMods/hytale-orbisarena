@@ -31,7 +31,20 @@ public final class Stash implements Component<EntityStore> {
             .<Boolean>append(new KeyedCodec<>("InArena", Codec.BOOLEAN), (s, v) -> s.inArena = v, s -> s.inArena).add()
             .<Map<String, ItemContainer>>append(new KeyedCodec<>("Kept", SECTIONS_CODEC), (s, v) -> s.kept = new HashMap<>(v), s -> s.kept).add()
             .<Map<String, ItemContainer>>append(new KeyedCodec<>("Leftover", SECTIONS_CODEC), (s, v) -> s.leftover = new HashMap<>(v), s -> s.leftover).add()
+            .<String>append(new KeyedCodec<>("OriginWorld", Codec.STRING), (s, v) -> s.originWorld = v, s -> s.originWorld).add()
+            .<double[]>append(new KeyedCodec<>("Origin", Codec.DOUBLE_ARRAY), (s, v) -> s.origin = v, s -> s.origin).add()
             .build();
+
+    /** The component's type, once the plugin registered it. */
+    private static volatile ComponentType<EntityStore, Stash> type;
+
+    public static void type(ComponentType<EntityStore, Stash> registered) {
+        type = registered;
+    }
+
+    public static ComponentType<EntityStore, Stash> type() {
+        return type;
+    }
 
     /** The game's inventory sections, by the names it saves them under. */
     private static final Map<String, Supplier<ComponentType<EntityStore, ? extends InventoryComponent>>> SECTIONS = Map.of(
@@ -48,8 +61,25 @@ public final class Stash implements Component<EntityStore> {
     boolean inArena;
     Map<String, ItemContainer> kept = new HashMap<>();
     Map<String, ItemContainer> leftover = new HashMap<>();
+    /** Where the player typed {@code /arena}: world, x, y, z, yaw; null once they are back. */
+    String originWorld;
+    double[] origin;
 
     public Stash() {
+    }
+
+    public String originWorld() {
+        return this.originWorld;
+    }
+
+    /** x, y, z, yaw. */
+    public double[] origin() {
+        return this.origin;
+    }
+
+    public void origin(String world, double[] at) {
+        this.originWorld = world;
+        this.origin = at;
     }
 
     @Override
@@ -58,6 +88,8 @@ public final class Stash implements Component<EntityStore> {
         copy.inArena = this.inArena;
         copy.kept = new HashMap<>(this.kept);
         copy.leftover = new HashMap<>(this.leftover);
+        copy.originWorld = this.originWorld;
+        copy.origin = this.origin == null ? null : this.origin.clone();
         return copy;
     }
 

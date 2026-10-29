@@ -18,6 +18,8 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import de.hymods.orbisarena.sim.Catalog;
 import de.hymods.orbisarena.sim.Faction;
 import de.hymods.orbisarena.sim.Rules;
+import de.hymods.orbisarena.stash.Stash;
+import de.hymods.orbisarena.ui.ArenaHud;
 import de.hymods.orbisarena.ui.FactionPage;
 import de.hymods.orbisarena.ui.LobbyHud;
 import de.hymods.orbisarena.world.ArenaBuilder;
@@ -47,6 +49,8 @@ public final class Games {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
     static final long WAIT_MILLIS = 30_000;
     static final long WAIT_PAIRED_MILLIS = 10_000;
+    /** The hotbar slot whose key (5) switches between flying and the view from above. */
+    static final int VIEW_KEY = 4;
     private static final Transform LOBBY_SPAWN = new Transform(0.5, Place.FLOOR + 1, 0.5);
 
     private final Catalog catalog;
@@ -62,8 +66,15 @@ public final class Games {
     private ScheduledFuture<?> lobbyClock;
     private volatile Camera camera = Camera.STANDARD;
 
-    public Games(Catalog catalog) {
+    private final Zoom zoom;
+
+    public Games(Catalog catalog, Zoom zoom) {
         this.catalog = catalog;
+        this.zoom = zoom;
+    }
+
+    public Zoom zoom() {
+        return this.zoom;
     }
 
     public Camera camera() {
@@ -100,6 +111,16 @@ public final class Games {
         }
         TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
         Seat seat = new Seat(player, world.getName(), transform == null ? new Transform(0, 100, 0) : new Transform(transform.getTransform()));
+        Stash stash = Stash.type() == null ? null : store.getComponent(ref, Stash.type());
+        if (stash == null && Stash.type() != null) {
+            stash = new Stash();
+            store.putComponent(ref, Stash.type(), stash);
+        }
+        if (stash != null) {
+            Transform at = seat.origin;
+            stash.origin(world.getName(), new double[]{at.getPosition().x, at.getPosition().y, at.getPosition().z,
+                    at.getRotation().y()});
+        }
         synchronized (this) {
             this.waiting.put(uuid, seat);
         }
@@ -175,8 +196,14 @@ public final class Games {
             return;
         }
         Session session = this.playing.get(player.getUuid());
-        if (session != null && session.world() == world) {
+        if (session != null && session.world() == world && session.expects(player.getUuid())) {
             session.arrived(player);
+            return;
+        }
+        // In an arena they no longer play in (back after a lost connection): home.
+        Ref<EntityStore> ref = player.getReference();
+        if (ref != null && ref.isValid()) {
+            rescue(player, ref, ref.getStore());
         }
     }
 
@@ -186,10 +213,15 @@ public final class Games {
             seat = this.waiting.get(player.getUuid());
         }
         Ref<EntityStore> ref = player.getReference();
-        if (seat == null || ref == null || !ref.isValid()) {
+        if (ref == null || !ref.isValid()) {
             return;
         }
         Store<EntityStore> store = ref.getStore();
+        if (seat == null) {
+            // Back after a lost connection, but no longer waiting: home.
+            rescue(player, ref, store);
+            return;
+        }
         seat.inLobby = true;
         Player body = store.getComponent(ref, Player.getComponentType());
         if (body != null) {
@@ -350,6 +382,7 @@ public final class Games {
 
     /** Back to where they typed {@code /arena}. On the world thread the player is in. */
     private void sendHome(Seat seat, Ref<EntityStore> ref, Store<EntityStore> store) {
+        arrivedHome(ref, store);
         Player body = store.getComponent(ref, Player.getComponentType());
         if (body != null) {
             body.getHudManager().removeCustomHud(seat.player, LobbyHud.KEY);
@@ -404,10 +437,70 @@ public final class Games {
         }
     }
 
+    /** Keys 1–4 pick a card; key 5 switches the view. */
     public void selected(UUID uuid, int slot) {
         Session session = this.playing.get(uuid);
-        if (session != null) {
+        if (session == null) {
+            return;
+        }
+        if (slot == VIEW_KEY) {
+            session.toggleView(uuid);
+        } else {
             session.select(uuid, slot);
+        }
+    }
+
+    /**
+     * A player is ready in a world not ours: out of the arena's game mode and zoom, should a crash or a lost
+     * connection have kept them in it, and back to where they typed {@code /arena} if they never got there.
+     */
+    public void readyElsewhere(PlayerRef player, Ref<EntityStore> ref, Store<EntityStore> store) {
+        Session.leaveFlight(store, ref);
+        boolean busy;
+        synchronized (this) {
+            busy = this.waiting.containsKey(player.getUuid()) || this.playing.containsKey(player.getUuid());
+        }
+        Stash stash = Stash.type() == null ? null : store.getComponent(ref, Stash.type());
+        if (!busy && stash != null && stash.originWorld() != null) {
+            rescue(player, ref, store);
+        }
+    }
+
+    /** Sends a player stranded in Orbis Arena (or kept from going home) to where they typed {@code /arena}. */
+    static void rescue(PlayerRef player, Ref<EntityStore> ref, Store<EntityStore> store) {
+        Session.leaveFlight(store, ref);
+        Camera.reset(player);
+        Player body = store.getComponent(ref, Player.getComponentType());
+        if (body != null) {
+            body.getHudManager().removeCustomHud(player, LobbyHud.KEY);
+            body.getHudManager().removeCustomHud(player, ArenaHud.KEY);
+            body.getHudManager().resetVisibleHudComponents(player);
+        }
+        Stash stash = Stash.type() == null ? null : store.getComponent(ref, Stash.type());
+        World origin = stash == null || stash.originWorld() == null ? null : Universe.get().getWorld(stash.originWorld());
+        double[] at = stash == null ? null : stash.origin();
+        if (stash != null) {
+            stash.origin(null, null);
+        }
+        if (origin == null || Worlds.ours(origin) || at == null || at.length < 4) {
+            World here = store.getExternalData().getWorld();
+            if (Worlds.ours(here)) {
+                World home = Universe.get().getDefaultWorld();
+                Transform[] spawns = home.getWorldConfig().getSpawnProvider().getSpawnPoints();
+                Transform spawn = spawns != null && spawns.length > 0 ? spawns[0] : new Transform(0, 100, 0);
+                store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(home, spawn));
+            }
+            return;
+        }
+        store.addComponent(ref, Teleport.getComponentType(),
+                Teleport.createForPlayer(origin, new Transform(at[0], at[1], at[2], 0f, (float) at[3], 0f)));
+    }
+
+    /** The origin is reached: no rescue needed any more. */
+    static void arrivedHome(Ref<EntityStore> ref, Store<EntityStore> store) {
+        Stash stash = Stash.type() == null ? null : store.getComponent(ref, Stash.type());
+        if (stash != null) {
+            stash.origin(null, null);
         }
     }
 

@@ -1,0 +1,30 @@
+{
+  "$Comment": "Orbis Arena: hold R to zoom 4x (the same zoom as FlexiisGoggles: the client's Zoom effect while a Charging step is held).",
+  "RequireNewClick": true,
+  "Cooldown": {
+    "Cooldown": 0
+  },
+  "Rules": {
+    "BlockedBy": []
+  },
+  "Interactions": [
+    {
+      "Type": "Charging",
+      "AllowIndefiniteHold": true,
+      "DisplayProgress": false,
+      "CancelOnOtherClick": true,
+      "OnItemChangeBehavior": "Ignore",
+      "Effects": {
+        "HideFirstPersonHeldItem": true,
+        "Zoom": {
+          "MagnificationMultiplier": 4,
+          "MouseSensitivityMultiplier": 0.35,
+          "DepthOfField": false,
+          "ForcePerspective": "FirstPerson",
+          "InLerp": 0.15,
+          "OutLerp": 0.25
+        }
+      }
+    }
+  ]
+}

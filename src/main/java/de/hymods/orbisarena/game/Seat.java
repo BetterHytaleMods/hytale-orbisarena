@@ -20,6 +20,8 @@ final class Seat {
     /** Active hotbar slot; 0–3 picks a card in hand. */
     int slot;
     boolean arrived;
+    /** In the view from above (key 5) rather than flying with the game's camera. */
+    boolean above;
     boolean gone;
     ArenaHud hud;
 

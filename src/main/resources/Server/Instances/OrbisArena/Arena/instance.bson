@@ -32,12 +32,14 @@
       "Roll": 0.0
     }
   },
-  "Instance": {
-    "RemovalConditions": [
-      {
-        "Type": "WorldEmpty"
-      }
-    ]
+  "Plugin": {
+    "Instance": {
+      "RemovalConditions": [
+        {
+          "Type": "WorldEmpty"
+        }
+      ]
+    }
   },
   "DeleteOnRemove": true,
   "Version": 2

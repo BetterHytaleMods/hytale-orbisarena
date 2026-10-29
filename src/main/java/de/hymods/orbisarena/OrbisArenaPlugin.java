@@ -12,9 +12,11 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import de.hymods.orbisarena.command.ArenaCommand;
+import de.hymods.orbisarena.command.ZoomCommand;
 import de.hymods.orbisarena.game.Games;
 import de.hymods.orbisarena.game.SlotSystem;
 import de.hymods.orbisarena.game.Worlds;
+import de.hymods.orbisarena.game.Zoom;
 import de.hymods.orbisarena.sim.Catalog;
 import de.hymods.orbisarena.stash.Stash;
 import de.hymods.orbisarena.stash.StashSwap;
@@ -33,8 +35,10 @@ public class OrbisArenaPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         Catalog catalog = Catalog.load();
-        this.games = new Games(catalog);
+        Zoom zoom = new Zoom(this.getDataDirectory().resolve("zoom.json"));
+        this.games = new Games(catalog, zoom);
         ComponentType<EntityStore, Stash> stash = this.getEntityStoreRegistry().registerComponent(Stash.class, "OrbisArenaStash", Stash.CODEC);
+        Stash.type(stash);
         StashSwap swap = new StashSwap(stash);
         this.getEventRegistry().registerGlobal(AddPlayerToWorldEvent.class, swap::onArrive);
         this.getEventRegistry().registerGlobal(PlayerReadyEvent.class, event -> {
@@ -46,12 +50,19 @@ public class OrbisArenaPlugin extends JavaPlugin {
             PlayerRef player = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
             if (player != null && Worlds.ours(world)) {
                 world.execute(() -> this.games.ready(player, world));
+            } else if (player != null) {
+                world.execute(() -> {
+                    if (ref.isValid()) {
+                        this.games.readyElsewhere(player, ref, ref.getStore());
+                    }
+                });
             }
         });
         this.getEventRegistry().register(PlayerMouseButtonEvent.class, this.games::clicked);
         this.getEventRegistry().register(PlayerDisconnectEvent.class, event -> this.games.disconnected(event.getPlayerRef().getUuid()));
         this.getEntityStoreRegistry().registerSystem(new SlotSystem(this.games));
         this.getCommandRegistry().registerCommand(new ArenaCommand(this.games));
+        this.getCommandRegistry().registerCommand(new ZoomCommand(zoom));
         this.getLogger().at(Level.INFO).log("Orbis Arena: %d factions", catalog.factions().size());
     }
 

@@ -5,13 +5,18 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Transform;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.protocol.Color;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.entity.gamemode.GameModeTypes;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
+import de.hymods.orbisarena.sim.Arena;
+import de.hymods.orbisarena.sim.CardDef;
 import com.hypixel.hytale.protocol.MouseButtonState;
 import com.hypixel.hytale.protocol.MouseButtonType;
 import com.hypixel.hytale.protocol.packets.interface_.HudComponent;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
-import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerMouseButtonEvent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -44,9 +49,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
- * One match in a world of its own: builds the arena, brings the players onto their keeps, runs the match 20
- * times a second (the bot plays an empty side), shows it, takes the players' clicks, and sends everyone home
- * when it is over. Everything but {@link #open} runs on the arena world's thread.
+ * One match in a world of its own: builds the arena, brings the players in (they fly over it in the game mode
+ * {@code OrbisArena_Flight} while their faction's leader stands on their keep), runs the match 20 times a second
+ * (the bot plays an empty side), shows it, takes the players' clicks, and sends everyone home when it is over.
+ * Everything but {@link #open} runs on the arena world's thread.
  */
 final class Session {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
@@ -54,7 +60,13 @@ final class Session {
     private static final double ARRIVAL_WAIT = 25;
     private static final double COUNTDOWN = 3.5;
     private static final double AFTERMATH = 7;
-    private static final String HOLD = "OrbisArena_Hold";
+    static final String FLIGHT = "OrbisArena_Flight";
+    /** How high above the floor players may fly. */
+    private static final double CEILING = 40;
+    private static final double EYE_HEIGHT = 1.6;
+    /** How far a line of sight may reach to the floor. */
+    private static final double MAX_AIM = 90;
+    private static final String MARKER = "Dust_Sparkles_Fine";
 
     enum State {
         OPENING, ARRIVING, COUNTDOWN, RUNNING, ENDED, CLOSED
@@ -142,7 +154,7 @@ final class Session {
         // Ticking land even where no player stands (a match of two bots; puppets need ticking land).
         this.release = Blocks.hold(world, ArenaBuilder.minX(), ArenaBuilder.minZ(), ArenaBuilder.maxX(), ArenaBuilder.maxZ());
         this.view = new View(world, this.match, builder);
-        this.view.start(new boolean[]{this.seats[0] != null, this.seats[1] != null});
+        this.view.start(new boolean[]{false, false});
         this.enter(State.ARRIVING);
         for (Seat seat : this.seats) {
             if (seat != null) {
@@ -159,9 +171,12 @@ final class Session {
         LOGGER.at(Level.INFO).log("Opened %s", this.describe());
     }
 
+    /** Where a player starts: in the air behind their keep, looking down onto the field towards the enemy. */
     private static Transform arrival(int side) {
         double[] top = Place.keepTop(side);
-        return new Transform(top[0], top[1], top[2], 0f, side == 0 ? (float) Math.PI : 0f, 0f);
+        double back = -Arena.forward(side) * 5;
+        return new Transform(top[0], Place.FLOOR + 12, top[2] + back, (float) Math.toRadians(-35),
+                side == 0 ? (float) Math.PI : 0f, 0f);
     }
 
     private void enter(State state) {
@@ -189,23 +204,91 @@ final class Session {
             return;
         }
         seat.arrived = true;
-        store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(arrival(seat.side)));
-        body.getHudManager().setVisibleHudComponents(player, HudComponent.Chat, HudComponent.EventTitle,
-                HudComponent.Notifications);
+        Transform at = arrival(seat.side);
+        store.addComponent(ref, Teleport.getComponentType(),
+                Teleport.createExact(at.getPosition(), new Rotation3f(0f, at.getRotation().y(), 0f), at.getRotation()));
+        GameModeTypes.exit(ref, store);
+        GameModeTypes.enter(ref, store, FLIGHT);
+        this.games.zoom().bind(store, ref, seat.uuid);
         seat.hud = new ArenaHud(player, this.match.side(seat.side).faction());
         body.getHudManager().addCustomHud(player, seat.hud);
-        this.games.camera().apply(player, seat.side);
-        this.hold(seat);
+        this.view(seat, false);
         LOGGER.at(Level.INFO).log("%s arrived in %s on side %d", seat.name, this.name, seat.side);
+    }
+
+    /** Free flight with the game's camera and a crosshair, or the view from above with a cursor. */
+    private void view(Seat seat, boolean above) {
+        seat.above = above;
+        Ref<EntityStore> ref = seat.player.getReference();
+        Player body = ref == null || !ref.isValid() ? null : ref.getStore().getComponent(ref, Player.getComponentType());
+        if (body != null) {
+            if (above) {
+                body.getHudManager().setVisibleHudComponents(seat.player, HudComponent.Chat, HudComponent.EventTitle,
+                        HudComponent.Notifications);
+            } else {
+                body.getHudManager().setVisibleHudComponents(seat.player, HudComponent.Chat, HudComponent.EventTitle,
+                        HudComponent.Notifications, HudComponent.Reticle);
+            }
+        }
+        if (above) {
+            this.games.camera().apply(seat.player, seat.side);
+        } else {
+            Camera.reset(seat.player);
+        }
+    }
+
+    /** Key 5: switches between free flight and the view from above. */
+    void toggleView(java.util.UUID uuid) {
+        Seat seat = this.seat(uuid);
+        if (seat != null && seat.arrived && !seat.gone) {
+            this.view(seat, !seat.above);
+        }
     }
 
     /** Sends the camera again, e.g. after an operator tuned it. */
     void refreshCamera() {
         for (Seat seat : this.seats) {
-            if (seat != null && seat.arrived && !seat.gone) {
+            if (seat != null && seat.arrived && !seat.gone && seat.above) {
                 this.games.camera().apply(seat.player, seat.side);
             }
         }
+    }
+
+    /**
+     * The tile a player aims at: from above, the block under the cursor; in flight, where the line of sight from
+     * the eyes meets the floor (so it works from any height). Null if it misses the field.
+     */
+    private double[] aim(Seat seat, Vector3i block) {
+        if (seat.above && block != null) {
+            return new double[]{Place.tileX(block.x()) + 0.5, Place.tileY(block.z()) + 0.5};
+        }
+        Ref<EntityStore> ref = seat.player.getReference();
+        if (ref == null || !ref.isValid() || ref.getStore() != this.world.getEntityStore().getStore()) {
+            return null;
+        }
+        Store<EntityStore> store = ref.getStore();
+        TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+        HeadRotation head = store.getComponent(ref, HeadRotation.getComponentType());
+        if (transform == null || head == null) {
+            return null;
+        }
+        Vector3d eye = transform.getPosition();
+        double ey = eye.y + EYE_HEIGHT;
+        double pitch = head.getRotation().x();
+        double yaw = head.getRotation().y();
+        double dx = -Math.sin(yaw) * Math.cos(pitch);
+        double dy = Math.sin(pitch);
+        double dz = -Math.cos(yaw) * Math.cos(pitch);
+        if (dy > -0.02) {
+            return null;
+        }
+        double t = (Place.FLOOR - ey) / dy;
+        if (t > MAX_AIM) {
+            return null;
+        }
+        double x = Place.tileX(eye.x + dx * t);
+        double y = Place.tileY(eye.z + dz * t);
+        return Arena.inside(x, y) ? new double[]{x, y} : null;
     }
 
     private Seat seat(java.util.UUID uuid) {
@@ -215,6 +298,12 @@ final class Session {
             }
         }
         return null;
+    }
+
+    /** Whether this player still has a seat here to come back to. */
+    boolean expects(java.util.UUID uuid) {
+        Seat seat = this.seat(uuid);
+        return seat != null && !seat.gone;
     }
 
     void select(java.util.UUID uuid, int slot) {
@@ -230,12 +319,12 @@ final class Session {
                 || event.getMouseButton().state != MouseButtonState.Released) {
             return;
         }
-        Vector3i block = event.getTargetBlock();
-        if (block == null) {
+        double[] aim = this.aim(seat, event.getTargetBlock());
+        if (aim == null) {
             return;
         }
-        double x = Place.tileX(block.x()) + 0.5;
-        double y = Place.tileY(block.z()) + 0.5;
+        double x = aim[0];
+        double y = aim[1];
         MouseButtonType button = event.getMouseButton().mouseButtonType;
         if (button == MouseButtonType.Left) {
             if (seat.slot < 0 || seat.slot > 3) {
@@ -324,35 +413,61 @@ final class Session {
                 }
             }
         }
-        if (this.ticks % 5 == 0 && this.state != State.ENDED) {
-            for (Seat seat : this.seats) {
-                if (seat != null && seat.arrived && !seat.gone) {
-                    this.hold(seat);
-                }
+        for (Seat seat : this.seats) {
+            if (seat == null || !seat.arrived || seat.gone) {
+                continue;
+            }
+            if (this.ticks % 5 == 0) {
+                this.bounds(seat);
+            }
+            if (this.ticks % 4 == 0 && this.state == State.RUNNING && !seat.above) {
+                this.marker(seat);
             }
         }
     }
 
-    /** Keeps a player on their keep: no walking, and back on top should they have got off it. */
-    private void hold(Seat seat) {
+    /** Keeps a flying player over the arena: back inside, gently, if they left the box. */
+    private void bounds(Seat seat) {
         Ref<EntityStore> ref = seat.player.getReference();
         if (ref == null || !ref.isValid() || ref.getStore() != this.world.getEntityStore().getStore()) {
             return;
         }
         Store<EntityStore> store = ref.getStore();
-        EntityEffect effect = EntityEffect.getAssetMap().getAsset(HOLD);
-        EffectControllerComponent effects = effect == null ? null : store.getComponent(ref, EffectControllerComponent.getComponentType());
-        if (effects != null) {
-            effects.addEffect(ref, effect, store);
-        }
         TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
-        double[] top = Place.keepTop(seat.side);
-        if (transform != null) {
-            Vector3d at = transform.getPosition();
-            if (Math.abs(at.x - top[0]) > 1.2 || Math.abs(at.z - top[2]) > 1.2 || at.y < top[1] - 1) {
-                store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(arrival(seat.side)));
-            }
+        if (transform == null) {
+            return;
         }
+        Vector3d at = transform.getPosition();
+        double x = Math.clamp(at.x, ArenaBuilder.minX() + 1, ArenaBuilder.maxX() - 1);
+        double y = Math.clamp(at.y, Place.FLOOR - 0.5, Place.FLOOR + CEILING);
+        double z = Math.clamp(at.z, ArenaBuilder.minZ() + 1, ArenaBuilder.maxZ() - 1);
+        if (x != at.x || y != at.y || z != at.z) {
+            HeadRotation head = store.getComponent(ref, HeadRotation.getComponentType());
+            Rotation3f look = head != null ? head.getRotation() : transform.getRotation();
+            store.addComponent(ref, Teleport.getComponentType(), Teleport.createExact(new Vector3d(x, y, z),
+                    new Rotation3f(0f, look.y(), 0f), look));
+        }
+    }
+
+    /**
+     * In flight: a mark on the floor where the crosshair points, only for that player; green where the selected
+     * card can go, red where it cannot (or there is not enough essence).
+     */
+    private void marker(Seat seat) {
+        if (seat.slot < 0 || seat.slot > 3) {
+            return;
+        }
+        double[] aim = this.aim(seat, null);
+        Ref<EntityStore> ref = seat.player.getReference();
+        if (aim == null || ref == null || !ref.isValid()) {
+            return;
+        }
+        CardDef card = this.match.side(seat.side).hand().slot(seat.slot);
+        boolean ok = card != null && this.match.canPlace(seat.side, card, aim[0], aim[1])
+                && card.cost() <= this.match.side(seat.side).essence();
+        Color color = ok ? new Color((byte) 80, (byte) 255, (byte) 120) : new Color((byte) 255, (byte) 70, (byte) 60);
+        ParticleUtil.spawnParticleEffect(MARKER, new Vector3d(Place.x(aim[0]), Place.FLOOR + 0.1, Place.z(aim[1])),
+                0f, 0f, 0f, 1f, color, List.of(ref), this.world.getEntityStore().getStore());
     }
 
     private void titleAll(String primary, String secondary, boolean major) {
@@ -432,16 +547,21 @@ final class Session {
             body.getHudManager().removeCustomHud(player, ArenaHud.KEY);
             body.getHudManager().resetVisibleHudComponents(player);
         }
-        EffectControllerComponent effects = store.getComponent(ref, EffectControllerComponent.getComponentType());
-        int hold = EntityEffect.getAssetMap().getIndex(HOLD);
-        if (effects != null && hold != Integer.MIN_VALUE) {
-            effects.removeEffect(ref, hold, store);
-        }
+        leaveFlight(store, ref);
+        Games.arrivedHome(ref, store);
         World origin = Universe.get().getWorld(seat.originWorld);
         if (origin == null || Worlds.ours(origin)) {
             origin = Universe.get().getDefaultWorld();
         }
         store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(origin, seat.origin));
+    }
+
+    /** Out of the arena's game mode and zoom again; also for players who come back after a crash. */
+    static void leaveFlight(Store<EntityStore> store, Ref<EntityStore> ref) {
+        if (FLIGHT.equals(GameModeTypes.getCurrentTypeId(ref, store))) {
+            GameModeTypes.exit(ref, store);
+        }
+        Zoom.unbind(store, ref);
     }
 
     /** Everyone home, puppets away, the world removed. */

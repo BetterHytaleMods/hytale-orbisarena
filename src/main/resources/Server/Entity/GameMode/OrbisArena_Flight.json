@@ -1,0 +1,19 @@
+{
+  "$Comment": "Players during an Orbis Arena match: they fly freely over the arena (the plugin keeps them inside it), cannot be hurt or targeted, have no inventory to open; their clicks and keys still reach the plugin.",
+  "MovementConfigId": "Spectator",
+  "Flying": true,
+  "NoClip": false,
+  "Invulnerable": true,
+  "Intangible": true,
+  "ItemDrops": false,
+  "PreventInventoryAccess": true,
+  "PreventEmotes": true,
+  "OverrideAllInteractions": false,
+  "TriggerBlocks": false,
+  "HudComponents": [
+    "Chat",
+    "Notifications",
+    "EventTitle",
+    "Reticle"
+  ]
+}

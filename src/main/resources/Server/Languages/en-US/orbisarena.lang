@@ -5,3 +5,5 @@ commands.arena.status.desc = Show lobbies and matches
 commands.arena.cam.desc = Tune the arena camera
 commands.arena.botmatch.desc = Let two bots play a match in an arena of their own
 commands.arena.start.desc = End the lobby countdown in three seconds
+commands.zoom.desc = How far holding R zooms in Orbis Arena
+commands.zoom.strength.desc = Zoom strength (1.5 to 8)
