@@ -15,7 +15,6 @@ import com.hypixel.hytale.server.core.entity.AnimationUtils;
 import com.hypixel.hytale.server.core.entity.Frozen;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
-import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
 import com.hypixel.hytale.server.core.modules.entity.component.HealthRegenState;
 import com.hypixel.hytale.server.core.modules.entity.component.Invulnerable;
@@ -155,18 +154,6 @@ final class Puppets {
         EntityStatValue value = stats.get(health);
         if (value != null) {
             stats.setStatValue(health, (float) Math.max(1, value.getMax() * Math.max(0, Math.min(1, share))));
-        }
-    }
-
-    void nameplate(Ref<EntityStore> ref, String text) {
-        if (!ref.isValid()) {
-            return;
-        }
-        Nameplate nameplate = this.store.getComponent(ref, Nameplate.getComponentType());
-        if (nameplate == null) {
-            this.store.putComponent(ref, Nameplate.getComponentType(), new Nameplate(text));
-        } else if (!text.equals(nameplate.getText())) {
-            nameplate.setText(text);
         }
     }
 

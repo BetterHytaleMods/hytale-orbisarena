@@ -115,7 +115,7 @@ public final class View {
                     tower.side());
             if (guard != null) {
                 this.guards.put(tower.id(), guard);
-                this.puppets.nameplate(guard, Integer.toString((int) Math.ceil(tower.hp())));
+                this.puppets.health(guard, tower.hp() / tower.maxHp());
             }
         }
     }
@@ -304,7 +304,6 @@ public final class View {
         Integer was = this.shownTowerHp.put(tower.id(), hp);
         Ref<EntityStore> guard = this.guards.get(tower.id());
         if (guard != null && (was == null || was != hp)) {
-            this.puppets.nameplate(guard, Integer.toString(hp));
             this.puppets.health(guard, tower.hp() / tower.maxHp());
         }
     }
